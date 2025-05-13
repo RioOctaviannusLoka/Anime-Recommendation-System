@@ -26,19 +26,54 @@ Berdasarkan pernyataan masalah tersebut, tujuan dari proyek ini adalah:
 ## Data Understanding
 Dataset yang digunakan pada proyek ini diambil dari platform kaggle dengan sumber sebagai berikut: [AnimeList Dataset](https://www.kaggle.com/datasets/CooperUnion/anime-recommendations-database). Dataset ini terdiri dari 2 file csv, yaitu `anime.csv` yang berisi metadata dari anime dan `rating.csv` yang berisi penilaian yang diberikan pengguna terhadap anime. File **anime.csv** terdiri dari 12.294 baris dan 7 kolom. File **rating.csv** terdiri dari 7.813.737 baris dan 3 kolom.
 
+### Variabel pada anime.csv
+Informasi terkait anime.csv dapat dilihat pada gambar berikut:<br>
+<img src="https://github.com/user-attachments/assets/3f758fa6-df5a-40d7-9be6-8a95e754de1b" align="center" width=300>
+<br>Terlihat bahwa ada 3 variabel numerik dan 4 variabel kategorikal bertipe data object. Terlihat juga bahwa ada beberapa variabel yang memiliki null type seperti pada variabel `genre`, `type`, dan `rating`.
 
+Deskripsi variabel:
+Variabel | Keterangan
+---------|-----------
+anime_id | ID unik myanimelist.net yang mengidentifikasi sebuah anime
+name     | Nama lengkap anime
+genre    | Daftar genre untuk anime ini yang dipisahkan dengan koma
+type     | Tipe anime, seperti movie, TV, OVA, dll
+episodes | Berapa banyak episode dalam acara ini (1 jika film)
+rating   | Rata-rata penilaian dari 10 untuk anime ini
+members  | Jumlah anggota komunitas yang berada dalam grup anime ini.
 
-Paragraf awal bagian ini menjelaskan informasi mengenai jumlah data, kondisi data, dan informasi mengenai data yang digunakan. Sertakan juga sumber atau tautan untuk mengunduh dataset. Contoh: [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/Restaurant+%26+consumer+data).
+Variabel yang akan digunakan dalam proyek ini adalah `anime_id`, `name`, dan `genre`.
 
-Selanjutnya, uraikanlah seluruh variabel atau fitur pada data. Sebagai contoh:  
+### Variabel pada rating.csv
+Informasi terkait rating.csv dapat dilihat pada gambar berikut:<br>
+<img src="https://github.com/user-attachments/assets/9c74ce68-15ca-425c-9b62-388de45a9b5f" align="center" width=300>
+<br> Dari hasil kode diatas, terlihat bahwa ada 3 variabel numerik yaitu `user_id`, `anime_id`, `rating`. 
 
-Variabel-variabel pada Restaurant UCI dataset adalah sebagai berikut:
-- accepts : merupakan jenis pembayaran yang diterima pada restoran tertentu.
-- cuisine : merupakan jenis masakan yang disajikan pada restoran.
-- dst
+Deskripsi Variabel:
+Variabel | Keterangan
+---------|-----------
+user_id  | ID pengguna
+anime_id | Anime yang telah dinilai oleh pengguna ini
+rating   | Penilaian dari 10 yang diberikan pengguna ini (-1 jika pengguna menontonnya tetapi tidak memberikan penilaian)
 
-**Rubrik/Kriteria Tambahan (Opsional)**:
-- Melakukan beberapa tahapan yang diperlukan untuk memahami data, contohnya teknik visualisasi data beserta insight atau exploratory data analysis.
+Ketiga variabel tersebut akan digunakan dalam proyek ini.
+
+### Pengecekan Missing Value
+Pada tahap ini, dilakukan pengecekan terhadap missing value dari anime_df dan rating_df dengan fungsi isna().sum(). Pada anime_df, terdapat 62 null value pada `genre`, 25 null value pada `type`, dan 230 null value pada `rating`. Sedangkan pada rating_df, tidak terdapat missing value sama sekali. Selanjutnya dilakukan pengecekan jumlah user yang memberikan rating -1. Rating -1 dianggap sebagai null value karena rating tersebut menunjukkan bahwa pengguna menonton anime tersebut tetapi tidak memberikan penilaian/rating. Jadi seluruh rating -1 akan ditangani selayaknya null value. Setelah ditelusuri, terdapat 1476496 baris yang ratingnya -1.
+
+### Univariate Exploratory Data Analysis
+1. Analisis Distribusi Rating
+    <br><img src="https://github.com/user-attachments/assets/6c86f2ab-9389-4804-8d67-84ada15c42f1" align="center" width=500>
+    <br>Insight: Dari grafik diatas, terlihat bahwa user kebanyakan memberikan rating dari rentang 7 hingga 10 dengan rating 8 merupakan rating terbanyak yang diberikan oleh user kepada anime-anime yang ada.
+   
+2. Analisis Genre
+   <br>Ditahap ini, dilakukan pengecekan jumlah genre yang ada pada setiap anime dengan memisahkan setiap list genre pada anime yang memiliki genre lebih dari satu. Lalu kita juga mengecek apa saja genre-genre yang ada pada **anime_df**. Diketahui bahwa terdapat 43 jumlah genre. Selain itu, ditampilkan visualisasi distribusi frekuensi anime dari 43 genre yang ada.
+   <br><img src="https://github.com/user-attachments/assets/e8283bd5-a5fe-4b04-a201-6a7cf5049728" align="center" width=500>
+   <br>Insight: Dari grafik diatas, dapat dilihat bahwa anime dengan genre Comedy merupakan anime yang paling banyak jumlahnya yaitu lebih dari 4000, kemudian diikuti dengan genre Action dan Adventure. Genre yang paling sedikit jumlah animenya yaitu Yaoi, Yuri, dan Josei.
+
+3. Analisis Distribusi Tipe Anime
+    <br><img src="https://github.com/user-attachments/assets/9d20d15a-e3e3-4dcf-9ec9-8038e850361d" align="center" width=500>
+    <br>Insight: Terlihat dari grafik diatas, bahwa tipe anime yang paling dominan adalah TV, dengan jumlah lebih dari 3700 judul. Ini menandakan bahwa format serial televisi merupakan bentuk yang paling umum digunakan dalam industri anime, kemungkinan karena daya tariknya yang tinggi dalam membangun cerita panjang dan basis penggemar yang stabil. Di posisi kedua dan ketiga terdapat tipe OVA (Original Video Animation) dan Movie, masing-masing dengan jumlah sekitar 3300 dan 2300 judul. Secara keseluruhan, grafik ini memberikan gambaran bahwa produksi anime masih sangat didominasi oleh format TV, sementara tipe-tipe lain berperan sebagai pelengkap atau variasi distribusi konten.
 
 ## Data Preparation
 Pada bagian ini Anda menerapkan dan menyebutkan teknik data preparation yang dilakukan. Teknik yang digunakan pada notebook dan laporan harus berurutan.
