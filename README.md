@@ -149,11 +149,49 @@ Setelah kedua tahapan diatas telah dilakukan, selanjutnya dilakukan pembagian da
 Selanjutnya, data train dan validasi dibagi dengan komposisi 80:20. Namun sebelumnya, dilakukan pemetaan (mapping) data user dan anime menjadi satu value terlebih dahulu yaitu x. Lalu, dibuat rating dalam skala 0 sampai 1 agar mudah dalam melakukan proses training dan disimpan pada variabel y. Normalisasi rating ini bertujuan untuk membuat training model lebih stabil dan konvergen lebih cepat.
 
 ## Modeling
-Tahapan ini membahas mengenai model sisten rekomendasi yang Anda buat untuk menyelesaikan permasalahan. Sajikan top-N recommendation sebagai output.
+### Content-Based Filtering
+Content-based filtering adalah metode dalam sistem rekomendasi yang memberikan rekomendasi item kepada pengguna berdasarkan kemiripan karakteristik item dengan item yang disukai atau dinilai tinggi oleh pengguna tersebut sebelumnya. Content-based filtering memiliki kelebihan, yaitu tidak bergantung pada data pengguna lain karena Content-Based Filtering hanya membutuhkan informasi dari item (misalnya genre anime), sehingga dapat tetap bekerja walaupun pengguna belum memberikan banyak interaksi (solusi untuk cold start pada user). Selain itu, model ini memberikan personalisasi tinggi, dimana sistem hanya fokus pada preferensi pengguna itu sendiri, sehingga rekomendasi bersifat sangat personal. Kekurangan dari metode ini adalah terbatas pada informasi konten. Jika data fitur (seperti genre) kurang akurat, kurang lengkap, atau tidak cukup beragam, maka kualitas rekomendasi akan menurun. Selain itu, metode ini juga kurang mampu menemukan item yang "berbeda" karena sistem hanya merekomendasikan item yang mirip dengan yang pernah disukai, pengguna bisa terjebak dalam filter bubble atau overspecialization.
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menyajikan dua solusi rekomendasi dengan algoritma yang berbeda.
-- Menjelaskan kelebihan dan kekurangan dari solusi/pendekatan yang dipilih.
+Untuk membangun model ini, pertama-tama dilakukan penghitungan derajat kesamaan (similarity degree) antar anime dengan teknik cosine similarity menggunakan fungsi cosine_similarity dari library sklearn. Selanjutnya, dibuat sebuah DataFrame yang berisi cosine similarity antara judul anime dengan judul anime lainnya. Setelah itu, dibuat fungsi rekomendasi anime berdasarkan kemiripan dari genre dengan keluaran fungsi berupa top-N recommendation yang nilai N-nya diatur dalam parameter k.
+
+Kodenya sebagai berikut:
+```python
+def anime_recommendations(nama_anime, similarity_data=cosine_sim_df, items=anime_new[['name', 'genre']], k=10):
+    index = similarity_data.loc[:,nama_anime].to_numpy().argpartition(range(-1, -k, -1))
+    closest = similarity_data.columns[index[-1:-(k+2):-1]]
+    closest = closest.drop(nama_anime, errors='ignore')
+    return pd.DataFrame(closest).merge(items).head(k)
+```
+
+Selanjutnya, dilakukan pengetesan fungsi rekomendasi yang telah dibuat menggunakan sebuah anime bernama 'Shingeki no Kyojin' untuk menghasilkan 10 rekomendasi anime baru. 
+<br><img src="https://github.com/user-attachments/assets/a7182321-476c-46f8-8053-085179b094b4" align="center" width=500>
+
+Kodenya sebagai berikut: `recs = anime_recommendations('Shingeki no Kyojin')`
+
+Output kode:
+<br><img src="https://github.com/user-attachments/assets/271589a3-bca1-450a-838f-9d3a264519c5" align="center" width=800>
+<br>Dapat dilihat genre anime yang dimasukan adalah Action,Drama,Fantasy,Shounen,Super Power. Hasilnya genre ini tersebar di dalam 10 judul anime yang memiliki kesaaman genre dan disajikan dalam top-10 recommendation.
+
+### Collaborative Filtering
+Model-Based Deep Learning Collaborative Filtering adalah pendekatan yang menggabungkan teknik collaborative filtering dengan metode deep learning untuk meningkatkan akurasi dan efektivitas sistem rekomendasi. Metode ini memiliki beberapa kelebihan yaitu:
+- Mampu menangkap pola kompleks antar pengguna dan item: Dengan pendekatan neural network (misalnya menggunakan embedding layer), model dapat mempelajari representasi laten (latent factors) yang lebih kaya dibanding metode manual.
+- Dapat menangani data dalam skala besar: Pendekatan ini dapat diskalakan dengan baik untuk jutaan user dan item, karena deep learning secara alami mampu menangani big data.
+- Mengatasi data sparsity: Dengan pemetaan ke ruang embedding, model tetap dapat memberikan prediksi yang cukup akurat meski sebagian besar user belum menilai banyak item.
+
+Selain kelebihan diatas, metode ini juga memiliki beberapa kekurangan, antara lain:
+- Membutuhkan banyak data dan sumber daya komputasi: Model deep learning cenderung membutuhkan data dalam jumlah besar serta waktu dan tenaga komputasi yang tinggi untuk pelatihan.
+- Kurang interpretatif: Model sering kali berperan sebagai black box, sehingga sulit dijelaskan mengapa suatu item direkomendasikan kepada pengguna.
+- Cold start problem: Masih mengalami kesulitan dalam merekomendasikan untuk user atau item baru yang belum memiliki interaksi sama sekali, karena sangat bergantung pada historis rating.
+
+Untuk membangun model dengan metode ini, pertama-tama dibuat sebuah class RecommenderNet dengan keras Model class. Class ini merupakan model yang akan menghitung skor kecocokan antara pengguna dan anime dengan teknik embedding. Kemudian, dilakukan proses embedding terhadap data user dan anime. Selanjutnya, dilakukan operasi perkalian dot product antara embedding user dan anime. Lalu, ditambahkan dropout untuk mengurangi overfitting. Selain itu, ditambahkan juga bias untuk setiap user dan anime. Skor kecocokan ditetapkan dalam skala [0,1] dengan fungsi aktivasi sigmoid. Langkah selanjutnya yaitu, dilakukan proses compile terhadap model. Model menggunakan Mean Squared Error untuk menghitung loss function, RMSprop sebagai optimizer, dan root mean squared error (RMSE) sebagai metrics evaluation. Model kemudain ditraining dengan method fit().
+
+<img src="https://github.com/user-attachments/assets/60cb0672-8c3d-4182-baa7-bb8da57ff291" align="center" width=800>
+<br>Dapat dilihat dari output diatas, model memperoleh nilai root_mean_squared_error: 0.1420 untuk data latih dan 0.1422 untuk data validasi. 
+
+<br>Selanjutnya, dilakukan pengetesan model untuk mendapatkan rekomendasi resto. Pertama, diambil sampel user secara acak dan definisikan variabel anime_not_watched yang merupakan daftar anime yang belum pernah dinonton oleh pengguna. Sebelumnya, pengguna telah memberi rating pada beberapa animeyang telah mereka nonton. Rating ini akan digunakan untuk membuat rekomendasi anime yang mungkin cocok untuk pengguna. Terakhir, untuk memperoleh rekomendasi anime, digunakan fungsi model.predict() dari library Keras.
+
+Hasil output top-10 recommendation anime:
+<br><img src="https://github.com/user-attachments/assets/15b8d68f-a139-4cd5-9b40-6b1cf1fe317e" align="center" width=800>
 
 ## Evaluation
 Pada bagian ini Anda perlu menyebutkan metrik evaluasi yang digunakan. Kemudian, jelaskan hasil proyek berdasarkan metrik evaluasi tersebut.
