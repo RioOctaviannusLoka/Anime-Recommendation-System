@@ -194,15 +194,65 @@ Hasil output top-10 recommendation anime:
 <br><img src="https://github.com/user-attachments/assets/15b8d68f-a139-4cd5-9b40-6b1cf1fe317e" align="center" width=800>
 
 ## Evaluation
-Pada bagian ini Anda perlu menyebutkan metrik evaluasi yang digunakan. Kemudian, jelaskan hasil proyek berdasarkan metrik evaluasi tersebut.
+### Content-Based Filtering
+Pada model Content-Based Filtering, metriks yang digunakan untuk mengukur seberapa baik model adalah metriks Precision pada sistem rekomendasi.
 
-Ingatlah, metrik evaluasi yang digunakan harus sesuai dengan konteks data, problem statement, dan solusi yang diinginkan.
+Formula Precision: 
 
-**Rubrik/Kriteria Tambahan (Opsional)**: 
-- Menjelaskan formula metrik dan bagaimana metrik tersebut bekerja.
+`Precision = Jumlah rekomendasi yang relevan / Jumlah total rekomendasi yang diberikan`
 
-**---Ini adalah bagian akhir laporan---**
+Keterangan:
+- Precision = Hasil metriks presisi
+- Numerator (atas): Mengukur berapa banyak dari item yang kita rekomendasikan ternyata benar-benar relevan bagi pengguna. Ini bisa diketahui dengan melihat item yang disukai/diberi rating tinggi oleh user.
+- Denominator (bawah): Merupakan jumlah total item yang kita rekomendasikan kepada pengguna.
 
-_Catatan:_
-- _Anda dapat menambahkan gambar, kode, atau tabel ke dalam laporan jika diperlukan. Temukan caranya pada contoh dokumen markdown di situs editor [Dillinger](https://dillinger.io/), [Github Guides: Mastering markdown](https://guides.github.com/features/mastering-markdown/), atau sumber lain di internet. Semangat!_
-- Jika terdapat penjelasan yang harus menyertakan code snippet, tuliskan dengan sewajarnya. Tidak perlu menuliskan keseluruhan kode project, cukup bagian yang ingin dijelaskan saja.
+Cara Kerja: Metrik precision bekerja dengan fokus pada akurasi hasil rekomendasi. Artinya, dari semua item yang direkomendasikan oleh sistem, berapa banyak yang benar-benar tepat sasaran (relevan). Precision tidak memperhitungkan item relevan lain yang tidak direkomendasikan — itu akan dihitung dalam recall.
+
+Setelah dilakukan pengukuran precision menggunakan kode berikut:
+```python
+def precision_at_k(query_anime_name, recommendations, anime_data):
+    # Ambil genre anime acuan
+    query_genres = anime_data[anime_data['name'] == query_anime_name]['genre'].values[0]
+    query_genres_set = set(query_genres.lower().split(','))
+
+    # Hitung relevansi setiap anime rekomendasi
+    relevant_count = 0
+    for genre_str in recommendations['genre']:
+        rec_genres_set = set(genre_str.lower().split(','))
+        if query_genres_set & rec_genres_set:  # set intersection tidak kosong
+            relevant_count += 1
+
+    # Precision = relevan / total rekomendasi
+    precision = relevant_count / len(recommendations)
+    return precision
+precision = precision_at_k('Shingeki no Kyojin', recs, anime_new)
+print(f'Precision: {precision:.2f}')
+```
+
+Hasil outputnya menunjukkan bahwa Precision: 1.00, yang berarti semua rekomendasi anime yang diberikan oleh sistem rekomendasi memiliki setidaknya satu genre yang relevan/sama dengan genre dari anime yang disukai oleh pengguna sebelumnya.
+
+### Collaborative Filtering
+Model Collaborative Filtering menggunakan metriks Root Mean Square Error (RMSE) sebagai metriks evaluasi yang digunakan untuk menilai performa dari model yang dibuat.
+
+Root Mean Squared Error (RMSE) adalah akar kuadrat dari MSE dan digunakan untuk mengukur seberapa besar rata-rata kesalahan prediksi model dalam satuan yang sama dengan data target aslinya. RMSE mempermudah interpretasi karena memiliki skala yang sama dengan nilai yang diprediksi, sehingga memudahkan dalam menilai apakah kesalahan model masih dapat diterima secara praktis. Semakin kecil nilai RMSE, semakin baik performa model dalam memprediksi data.
+
+Formula: 
+<br><img src="https://github.com/user-attachments/assets/15ba9ce6-94a4-4add-932c-cedca9f85bf0" align="center" width=300>
+<br>Keterangan:
+- n = jumlah dataset
+- yi = nilai sebenarnya
+- yp = nilai prediksi
+
+Cara Kerja:
+RMSE merupakan akar dari MSE. Dengan demikian, RMSE memiliki satuan yang sama seperti target (nilai aktual), sehingga lebih mudah diinterpretasikan secara langsung dalam konteks domain. Sama seperti MSE, nilai RMSE yang lebih rendah menunjukkan model yang lebih akurat.
+
+Visualisasi RMSE terhadap epochs:
+<br><img src="https://github.com/user-attachments/assets/32cd7ce3-de37-4940-9ae9-eadc89044cec" align="center" width=500>
+
+Dapat dilihat dari grafik diatas, pada epochs ke-10, model memperoleh nilai root_mean_squared_error: 0.1420 untuk data latih dan 0.1422 untuk data validasi. Nilai tersebut cukup bagus untuk sistem rekomendasi.
+
+### Kesimpulan
+Berdasarkan hasil yang diperoleh dan analisis yang telah dilakukan, diperoleh beberapa kesimpulan penting:
+1. Dengan mengembangkan model menggunakan Content-Based Filtering, model dapat memberikan 10 rekomendasi film kepada sesama pengguna berdasarkan genre dari anime yang disukai pengguna sebelumnya dengan nilai matriks precision sebesar 100.00%.
+2. Penggunaan Model-Based Deep Learning Collaborative Filtering memberikan hasil rekomendasi yang lebih akurat dan relevan bagi pengguna. Hal ini ditunjukkan dengan visualisasi RMSE bahwa pada epochs ke-10, model memperoleh nilai root_mean_squared_error: 0.1420 untuk data latih dan 0.1422 untuk data validasi. Nilai tersebut cukup bagus untuk sistem rekomendasi.
+3. Proyek berhasil mencapai setiap goals yang telah ditetapkan dalam proyek ini dengan kedua poin diatas yang berhasil menjawab setiap problem statement sekaligus goal dalam proyek ini. Proyek ini juga berhasil menerapkan solution statements yang telah dirancang pada proyek ini, yaitu proyek ini berhasil mengembangkan sistem rekomendasi berbasis konten (content-based filtering) untuk merekomendasikan anime berdasarkan genre yang disukai pengguna serta berhasil juga mengembangkan sistem rekomendasi berbasis kolaboratif (collaborative filtering) untuk memberikan rekomendasi berdasarkan preferensi pengguna lain yang memiliki kesamaan selera.
