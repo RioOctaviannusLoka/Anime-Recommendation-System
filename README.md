@@ -142,11 +142,29 @@ Encoding ini dilakukan karena user_id dan anime_id tidak berurutan dari nol, seh
 
 Setelah itu, user_id dan anime_id dipetakan ke dataframe yang berkaitan. Dan terakhir, dilakukan pengecekan beberapa hal dalam data seperti jumlah user, jumlah anime, dan kemudian mengubah nilai rating menjadi float. Dilakukan juga pengecekan terhadap rating minimum dan rating maksimum. Pengecekan ini penting untuk mengetahui skala data serta distribusinya. Mengetahui jumlah user dan item sangat berguna untuk menentukan arsitektur input dan output model, sedangkan pengecekan rating memastikan tidak ada anomali atau nilai ekstrem yang salah. Hasil dari proses pengecekan yaitu jumlah user: 69600, jumlah anime: 9892, rating minimum: 1.0, dan rating maksimum: 10.0.
 
-Setelah kedua tahapan diatas telah dilakukan, selanjutnya dilakukan pembagian data training dan data validasi untuk proses pelatihan model. Pertama-tama, dilakukan pengacakan data supaya distribusinya menjadi acak. Pengacakan data memastikan bahwa distribusi user dan anime tersebar merata di training dan validation, sehingga model tidak overfitting pada pola tertentu.
+Setelah kedua tahapan diatas telah dilakukan, selanjutnya dilakukan pembagian data training dan data validasi untuk proses pelatihan model. Pertama-tama, dilakukan pengacakan data supaya distribusinya menjadi acak. Pengacakan data memastikan bahwa distribusi user dan anime tersebar merata di training dan validation, sehingga model tidak overfitting pada pola tertentu. Pengacakan data dilakukan melalui kode berikut:
 
 <img src="https://github.com/user-attachments/assets/85fe88c2-b1a6-41ca-addd-d828eba02f8f" align="center" width=500>
 
+Baris kode `anime_ratings := anime_ratings.sample(frac=1, random_state=42)` digunakan untuk mengacak seluruh baris dalam DataFrame anime_ratings tanpa mengubah ukurannya (`frac=1` berarti 100% data diacak). Parameter `random_state=42` memastikan bahwa hasil pengacakan bersifat deterministik (reproducible), artinya hasilnya akan sama setiap kali kode dijalankan.
+
 Selanjutnya, data train dan validasi dibagi dengan komposisi 80:20. Namun sebelumnya, dilakukan pemetaan (mapping) data user dan anime menjadi satu value terlebih dahulu yaitu x. Lalu, dibuat rating dalam skala 0 sampai 1 agar mudah dalam melakukan proses training dan disimpan pada variabel y. Normalisasi rating ini bertujuan untuk membuat training model lebih stabil dan konvergen lebih cepat.
+
+Kode untuk normalisasi dan pembagian data adalah sebagai berikut:
+```python
+x = anime_ratings[['user', 'anime']].values
+y = anime_ratings['rating'].apply(lambda x: (x - min_rating) / (max_rating - min_rating)).values
+
+# Membagi menjadi 80% data train dan 20% data validasi
+train_indices = int(0.8 * anime_ratings.shape[0])
+x_train, x_val, y_train, y_val = (
+    x[:train_indices],
+    x[train_indices:],
+    y[:train_indices],
+    y[train_indices:]
+)
+
+```
 
 ## Modeling
 ### Content-Based Filtering
