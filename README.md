@@ -1,4 +1,4 @@
-# Laporan Proyek Machine Learning - Nama Anda
+# Laporan Proyek Machine Learning - Rio Octaviannus Loka
 
 ## Project Overview
 Seiring dengan meningkatnya popularitas anime secara global, pengguna platform seperti MyAnimeList (MAL) dihadapkan pada tantangan untuk memilih tontonan yang sesuai dari ribuan judul anime yang tersedia. Dengan begitu banyak pilihan, pengguna kerap merasa kewalahan, sehingga pengalaman eksplorasi menjadi kurang efisien dan tidak menyenangkan. Dalam konteks ini, sistem rekomendasi menjadi solusi yang sangat relevan dan dibutuhkan. Sistem ini bertujuan membantu pengguna menemukan anime yang sesuai dengan minat dan preferensi mereka tanpa harus melalui proses pencarian manual yang panjang. Proyek ini dirancang untuk membangun dua jenis sistem rekomendasi berbasis machine learning, yaitu content-based filtering dan collaborative filtering, dengan memanfaatkan data anime peringkat teratas di MyAnimeList.
